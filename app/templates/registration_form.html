@@ -1,0 +1,42 @@
+{# templates/registration_form.html #}
+
+{% extends "base.html" %}
+
+{% block meta %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script>
+         $(document).ready(function() {
+            $("#repeat_password").on("keyup", function() {
+                var password1 = $("#password").val();
+                var password2 = $(this).val();
+                if(password1 != password2) {
+                    $(".error").html("Пароли не совпадают!");
+                    $(".btn").attr("disabled", "disabled");
+                } else {
+                    $(".btn").removeAttr("disabled");
+                    $(".error").html("");
+                }
+            });
+        });
+    </script>
+{% endblock meta %}
+
+{% block content %}
+    <h3>Установите пароль для своей учётной записи</h3>
+
+    <form method="post">
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input required minlength="8" type="password" class="form-control" name="password" id="password" placeholder="Введите пароль">
+        </div>
+
+        <div class="error" style="color: red"></div>
+
+        <div class="form-group">
+            <label for="repeat_password">Password</label>
+            <input required minlength="8" type="password" class="form-control" name="repeat_password" id="repeat_password" placeholder="Повторите пароль">
+        </div>
+
+        <button type="submit" class="btn btn-default">Установить пароль</button>
+    </form>
+{% endblock content %}
