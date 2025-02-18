@@ -1,19 +1,9 @@
-from datetime import datetime, timezone
 from typing import Union
 
-import jwt
-from passlib.hash import pbkdf2_sha256
-from sqlalchemy import Column, ForeignKey, Integer, String, Table, select
+from sqlalchemy import Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, backref, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.config import (
-    DATETIME_FORMAT,
-    EXPIRE_ACCESS_TOKEN,
-    EXPIRE_REFRESH_TOKEN,
-    SECRET_PYJWT_ACCESS_KEY,
-)
-from app.core.utils import aware_now
 from app.database import Base
 
 
@@ -39,7 +29,7 @@ class User(Base):
         return name
 
 
-async def get_user(session: AsyncSession, user_id: int) -> Union[User, None]:
+async def get_user(session: AsyncSession, user_id: Union[int, str]) -> Union[User, None]:
     res = await session.execute(select(User).where(User.id == user_id))
     return res.unique().scalar_one_or_none()
 
@@ -60,48 +50,3 @@ async def get_or_create_user(session: AsyncSession, user_id: int, user_data: dic
         await session.commit()
 
     return user
-
-
-async def set_user_password(session: AsyncSession, user: User, password: str) -> User:
-    password_hash = pbkdf2_sha256.hash(password)
-    user.password = password_hash
-
-    expire_access_token = (aware_now() + EXPIRE_ACCESS_TOKEN).strftime(format=DATETIME_FORMAT)
-    expire_refresh_token = (aware_now() + EXPIRE_REFRESH_TOKEN).strftime(format=DATETIME_FORMAT)
-
-    user.access_token = jwt.encode(
-        {'user_id': user.id, 'username': user.username, 'date': expire_access_token},
-        SECRET_PYJWT_ACCESS_KEY,
-        algorithm='HS256',
-    )
-    user.refresh_token = jwt.encode(
-        {'user_id': user.id, 'username': user.username, 'date': expire_refresh_token},
-        SECRET_PYJWT_ACCESS_KEY,
-        algorithm='HS256',
-    )
-
-    await session.commit()
-    await session.refresh(user)
-
-    return user
-
-
-#
-# async def follow(session: AsyncSession, user: User, main_user_id: int) -> None:
-#     main_user = await get_user(session=session, user_id=main_user_id)
-#
-#     if user in main_user.followers:
-#         raise ValidationError('Пользователь уже подписан')
-#
-#     user.following.append(main_user)
-#     await session.commit()
-#
-#
-# async def unfollow(session: AsyncSession, user: User, main_user_id: int) -> None:
-#     main_user = await get_user(session=session, user_id=main_user_id)
-#
-#     if user not in main_user.followers:
-#         raise ValidationError('Пользователь не подписан')
-#
-#     user.following.remove(main_user)
-#     await session.commit()

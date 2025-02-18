@@ -1,7 +1,8 @@
-from typing import Any, List, Optional, Self
+import datetime
+from typing import Self
 
 from fastapi import Form
-from pydantic import BaseModel, Field, FileUrl, PositiveInt, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class RegistrationForm(BaseModel):
@@ -17,3 +18,28 @@ class RegistrationForm(BaseModel):
         if self.password != self.repeat_password:
             raise ValueError('Пароли не совпадают')
         return self
+
+
+class LoginForm(BaseModel):
+    password: str = Field(min_length=8)
+
+    @classmethod
+    def as_form(cls, password: str = Form(...)) -> BaseModel:
+        return cls(password=password)
+
+
+class HabitForm(BaseModel):
+    title: str
+    description: str = None
+    target: int
+    alert_time: datetime.time
+
+    @classmethod
+    def as_form(
+        cls,
+        title: str = Form(...),
+        description: str = Form(...),
+        target: int = Form(...),
+        alert_time: datetime.time = Form(...),
+    ) -> BaseModel:
+        return cls(title=title, description=description, target=target, alert_time=alert_time)

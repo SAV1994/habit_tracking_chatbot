@@ -1,0 +1,28 @@
+{# templates/habit_form.html #}
+
+{% extends "base.html" %}
+
+{% block content %}
+    <h3>Новая цель</h3>
+    <p>Трекинг выполнения начнется со следующего дня</p>
+
+    <form method="post">
+        <div class="form-group">
+            <label for="title">Цель</label>
+            <input required type="text" class="form-control" name="title" id="title">
+        </div>
+        <div class="form-group">
+            <label for="description">Описание</label>
+            <input type="text" class="form-control" name="description" id="description" value="Ерунда какая-то">
+        </div>
+        <div class="form-group">
+            <label for="target">Количество дней для закрепления</label>
+            <input required type="number" name="target" id="target" min="1" value="21">
+        </div>
+        <div class="form-group">
+            <label for="alert_time">Время уведомления</label>
+            <input required type="time" name="alert_time" id="alert_time">
+        </div>
+        <button type="submit" class="btn btn-primary pull-right">Добавить</button>
+    </form>
+{% endblock content %}
