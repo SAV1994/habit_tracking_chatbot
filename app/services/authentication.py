@@ -5,15 +5,15 @@ from jwt import DecodeError
 from passlib.hash import pbkdf2_sha256
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import (
+from app.core.utils import aware_now
+from app.models import User, get_or_create_user, get_user
+from app.settings import (
     DATETIME_FORMAT,
     EXPIRE_ACCESS_TOKEN,
     EXPIRE_REFRESH_TOKEN,
     SECRET_PYJWT_ACCESS_KEY,
     SECRET_PYJWT_REFRESH_KEY,
 )
-from app.core.utils import aware_now
-from app.models import User, get_or_create_user
 
 
 async def authenticate(session: AsyncSession, data: dict) -> User:
@@ -21,6 +21,15 @@ async def authenticate(session: AsyncSession, data: dict) -> User:
         user_data = msg_data.get('from', {})
         if user_id := user_data.get('id'):
             user = await get_or_create_user(session=session, user_id=user_id, user_data=user_data)
+            return user
+
+
+async def authorize(
+    session: AsyncSession, user_id: int, token: Union[str, None], use_refresh_token: bool = False
+) -> Union[User, None]:
+    user = await get_user(session=session, user_id=user_id)
+    if user and token:
+        if check_token(user=user, token=token, refresh=use_refresh_token):
             return user
 
 
@@ -56,9 +65,20 @@ def check_password(user: User, password: str) -> bool:
     return user and user.password and pbkdf2_sha256.verify(password, user.password)
 
 
-def check_token(user_id: Union[int, str], token: str, secret_token: str) -> bool:
+def check_token(user: User, token: str, refresh: bool = False) -> bool:
+    if refresh:
+        secret_token = SECRET_PYJWT_REFRESH_KEY
+        token_from_db = user.refresh_token
+    else:
+        secret_token = SECRET_PYJWT_ACCESS_KEY
+        token_from_db = user.access_token
+
     try:
         token_data = jwt.decode(token, secret_token, algorithms=['HS256'])
-        return token_data['date'] > aware_now().strftime(DATETIME_FORMAT) and token_data['user_id'] == int(user_id)
+        return (
+            token_data['date'] > aware_now().strftime(DATETIME_FORMAT)
+            and token_data['user_id'] == user.id
+            and token == token_from_db
+        )
     except (DecodeError, KeyError, ValueError):
         return False

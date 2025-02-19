@@ -3,23 +3,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <a href="{{ host }}/{{ user_id }}/add-habit"><button type="button" class="btn btn-success">Добавить цель</button></a>
-    <button type="button" class="btn btn-primary pull-right">Выполненные цели</button>
-    <h3>Список текущих целей</h3>
+
+
+    {% if completed %}
+        <a href="{{ host }}/webapp/{{ user_id }}/home"><button type="button" class="btn btn-default">Назад</button></a>
+        <h3>🏆 Список выполненных целей</h3>
+    {% else %}
+        <a href="{{ host }}/webapp/{{ user_id }}/habit">
+            <button type="button" class="btn btn-success">Добавить цель</button>
+        </a>
+        <a href="{{ host }}/webapp/{{ user_id }}/completed">
+            <button type="button" class="btn btn-primary pull-right">🏆 Выполненные цели</button>
+        </a>
+        <h3>Список текущих целей</h3>
+    {% endif %}
+
     <table class="table">
         <thead>
             <tr>
                 <th>Цель</th>
-                <th>Осталось дней</th>
-                <th>Следующее напоминание</th>
+                <th>Описание</th>
+                {% if completed %}
+                    <th>Дата выполнения</th>
+                {% else %}
+                    <th>Осталось дней</th>
+                    <th>Следующее напоминание</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
             {% for habit in habits %}
                 <tr>
-                    <td>{{ habit.title }}</td>
-                    <td>{{ habit.days_left }}</td>
-                    <td>{{ habit.alert_date }} {{ habit.alert_time }}</td>
+                    <td><a href="{{ host }}/webapp/{{ user_id }}/habit/{{ habit.id }}">{{ habit.title }}</a></td>
+                    <td>{{ habit.description }}</td>
+
+                    {% if completed %}
+                        <th>{{ habit.completed_date }}</th>
+                    {% else %}
+                        <td>{{ habit.days_left }}</td>
+                        <td>{{ habit.alert_date }} {{ habit.alert_time }}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </tbody>

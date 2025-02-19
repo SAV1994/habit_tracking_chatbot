@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, Union
 
 from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import (
@@ -38,7 +38,7 @@ class Habit(Base):
         return self.target - self.process
 
 
-async def create_habit(session: AsyncSession, user_id: int, habit_data) -> None:
+async def create_habit(session: AsyncSession, user_id: int, habit_data: dict) -> Habit:
     habit = Habit(
         user_id=user_id,
         title=habit_data['title'],
@@ -50,9 +50,41 @@ async def create_habit(session: AsyncSession, user_id: int, habit_data) -> None:
     session.add(habit)
     await session.commit()
 
+    await session.refresh(habit)
+    return habit
+
+async def update_habit(session: AsyncSession, habit: Habit, data: dict) -> Habit:
+    for field in ['title', 'description', 'target', 'alert_time']:
+        setattr(habit, field, data.get(field, ''))
+
+    await session.commit()
+
+    return habit
+
+
+async def get_habit(session: AsyncSession, user_id: int, habit_id: int, active: bool=False) -> Union[Habit, None]:
+    stmt = select(Habit).where(Habit.id == habit_id, Habit.user_id == user_id)
+    if active:
+        stmt = stmt.where(Habit.completed_date.is_(None))
+    res = await session.execute(stmt)
+
+    return res.scalars().one_or_none()
+
 
 async def get_active_habits(session: AsyncSession, user_id: int) -> Sequence[Habit]:
     stmt = select(Habit).where(Habit.user_id == user_id, Habit.completed_date.is_(None))
     res = await session.execute(stmt)
 
     return res.scalars().all()
+
+
+async def get_completed_habits(session: AsyncSession, user_id: int) -> Sequence[Habit]:
+    stmt = select(Habit).where(Habit.user_id == user_id, Habit.completed_date.is_not(None))
+    res = await session.execute(stmt)
+
+    return res.scalars().all()
+
+
+async def delete_habit(session: AsyncSession, habit: Habit) -> None:
+    await session.delete(habit)
+    await session.commit()

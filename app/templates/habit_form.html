@@ -2,27 +2,82 @@
 
 {% extends "base.html" %}
 
-{% block content %}
-    <h3>Новая цель</h3>
-    <p>Трекинг выполнения начнется со следующего дня</p>
+{% block meta %}
+    {% if habit %}
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                $("button.delete-btn").on("click", function() {
+                    $.ajax({
+                        url: '{{ host }}/webapp/{{ user_id }}/habit/{{ habit.id }}',
+                        type: 'DELETE',
+                        success: function(result) {
+                            var page_link = $("a.link-to-list").attr('href');
+                            window.location.href=page_link;
+                        }
+                    });
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock meta %}
 
-    <form method="post">
-        <div class="form-group">
-            <label for="title">Цель</label>
-            <input required type="text" class="form-control" name="title" id="title">
-        </div>
-        <div class="form-group">
-            <label for="description">Описание</label>
-            <input type="text" class="form-control" name="description" id="description" value="Ерунда какая-то">
-        </div>
-        <div class="form-group">
-            <label for="target">Количество дней для закрепления</label>
-            <input required type="number" name="target" id="target" min="1" value="21">
-        </div>
-        <div class="form-group">
-            <label for="alert_time">Время уведомления</label>
-            <input required type="time" name="alert_time" id="alert_time">
-        </div>
-        <button type="submit" class="btn btn-primary pull-right">Добавить</button>
-    </form>
+{% block content %}
+    {% if habit and habit.completed_date %}
+        <h3>Просмотр выполненной</h3>
+        <p>Доступно только удаление</p>
+    {% elif habit %}
+        <h3>Редактирование цели</h3>
+        <p>Редактирование не скажется на текущем прогрессе</p>
+    {% else %}
+        <h3>Новая цель</h3>
+        <p>Трекинг выполнения начнется со следующего дня</p>
+    {% endif %}
+
+    {% if success %}
+        <p style="color: green">✅ Успешно сохранено</p>
+    {% endif %}
+
+    <div>
+        <form method="post">
+            <div class="form-group">
+                <label for="title">Цель</label>
+                <input required type="text" class="form-control" name="title" id="title"
+                       {% if habit %}value="{{ habit.title }}"{% endif %}
+                       {% if habit and habit.completed_date %} readonly{% endif %}>
+            </div>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <input type="text" class="form-control" name="description" id="description"
+                       {% if habit %}value="{{ habit.description }}"{% endif %}
+                       {% if habit and habit.completed_date %} readonly{% endif %}>
+            </div>
+            <div class="form-group">
+                <label for="target">Количество дней для закрепления</label>
+                <input required type="number" name="target" id="target" min="1"
+                       value="{% if habit %}{{ habit.target }}{% else %}21{% endif %}"
+                       {% if habit and habit.completed_date %} readonly{% endif %}>
+            </div>
+            <div class="form-group">
+                <label for="alert_time">Время уведомления</label>
+                <input required type="time" name="alert_time" id="alert_time"
+                       {% if habit %}value="{{ habit.alert_time }}"{% endif %}
+                       {% if habit and habit.completed_date %} readonly{% endif %}>
+            </div>
+            {% if habit and habit.completed_date %}
+                <a class="link-to-list" href="{{ host }}/webapp/{{ user_id }}/completed">
+                    <button type="button" class="btn btn-default">Назад</button>
+                </a>
+                <button type="button" class="btn btn-danger pull-right delete-btn">Удалить</button>
+            {% else %}
+                <a class="link-to-list" href="{{ host }}/webapp/{{ user_id }}/home">
+                    <button type="button" class="btn btn-default">Назад</button>
+                </a>
+                <button type="submit" class="btn btn-primary pull-right">Сохранить</button>
+                {% if habit %}
+                    <button type="button" class="btn btn-danger pull-right delete-btn" style="margin-right: 10px">Удалить</button>
+                {% endif %}
+            {% endif %}
+        </form>
+    </div>
 {% endblock content %}
