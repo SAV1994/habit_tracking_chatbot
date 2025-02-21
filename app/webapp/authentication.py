@@ -6,12 +6,8 @@ from starlette.responses import Response
 from app.bot import bot
 from app.core.dependencies import get_session
 from app.core.templates import templates
-from app.models import get_user
-from app.models.habbit import (
-    get_active_habits,
-)
 from app.schemas import LoginForm, RegistrationForm
-from app.services import get_markup, set_user_password
+from app.services import get_active_habits, get_markup, get_user, set_user_password
 from app.services.authentication import (
     authorize,
     check_password,
@@ -42,7 +38,12 @@ async def set_new_tokens(request: Request, idx: int = Path(...), session: AsyncS
     else:
         response = Response(status_code=status.HTTP_403_FORBIDDEN)
 
-    await bot.send_message(user.id, text='❗ Новый вход в меню постановки целей.', reply_markup=get_markup(user))
+    await bot.send_message(
+        user.id,
+        text='❕ Новый вход в меню постановки целей.',
+        disable_notification=False,
+        reply_markup=get_markup(user),
+    )
 
     return response
 
@@ -77,7 +78,12 @@ async def register(
         key=ACCESS_TOKEN_NAME, value=user.access_token, httponly=True, max_age=3600 * ACCESS_TOKEN_LIFETIME
     )
 
-    await bot.send_message(user.id, text='❗ Новый вход в меню постановки целей.', reply_markup=get_markup(user))
+    await bot.send_message(
+        user.id,
+        text='❕ Новый вход в меню постановки целей.',
+        disable_notification=False,
+        reply_markup=get_markup(user),
+    )
 
     return response
 
@@ -116,7 +122,12 @@ async def login(
             key=ACCESS_TOKEN_NAME, value=user.access_token, httponly=True, max_age=3600 * ACCESS_TOKEN_LIFETIME
         )
 
-        await bot.send_message(user.id, text='❗ Новый вход в меню постановки целей.', reply_markup=get_markup(user))
+        await bot.send_message(
+            user.id,
+            text='❕ Новый вход в меню постановки целей.',
+            disable_notification=False,
+            reply_markup=get_markup(user),
+        )
     else:
         response = templates.TemplateResponse('login_form.html', {'request': request, 'user_id': idx, 'error': True})
 

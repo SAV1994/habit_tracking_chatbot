@@ -6,7 +6,8 @@ from passlib.hash import pbkdf2_sha256
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.utils import aware_now
-from app.models import User, get_or_create_user, get_user
+from app.models import User
+from app.services.user import get_or_create_user, get_user
 from app.settings import (
     DATETIME_FORMAT,
     EXPIRE_ACCESS_TOKEN,
@@ -17,7 +18,7 @@ from app.settings import (
 
 
 async def authenticate(session: AsyncSession, data: dict) -> User:
-    if msg_data := data.get('message'):
+    if (msg_data := data.get('message')) or (msg_data := data.get('callback_query')):
         user_data = msg_data.get('from', {})
         if user_id := user_data.get('id'):
             user = await get_or_create_user(session=session, user_id=user_id, user_data=user_data)

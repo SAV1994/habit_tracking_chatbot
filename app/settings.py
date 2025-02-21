@@ -1,6 +1,8 @@
-from datetime import timedelta
 import os
+from datetime import timedelta
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -16,3 +18,12 @@ ACCESS_TOKEN_LIFETIME = 1  # hours
 EXPIRE_ACCESS_TOKEN = timedelta(hours=ACCESS_TOKEN_LIFETIME)
 EXPIRE_REFRESH_TOKEN = timedelta(hours=ACCESS_TOKEN_LIFETIME * 72)
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+DATABASE_DETAILS = 'admin:admin@0.0.0.0:5450'
+DATABASE_URL = 'postgresql+asyncpg://' + DATABASE_DETAILS
+TZ = 'Europe/Moscow'
+APSCHEDULER_CONFIG = {
+    'apscheduler.jobstores.default': {'type': 'sqlalchemy', 'url': 'postgresql+psycopg2://' + DATABASE_DETAILS},
+    'apscheduler.timezone': TZ,
+    'apscheduler.jobstore_retry_interval': 1,
+    'apscheduler.misfire_grace_time': 1,
+}

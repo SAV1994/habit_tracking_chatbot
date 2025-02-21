@@ -5,15 +5,15 @@ from starlette.responses import Response
 
 from app.core.dependencies import get_session
 from app.core.templates import templates
-from app.models import create_habit
-from app.models.habbit import (
+from app.schemas import HabitForm
+from app.services import (
+    create_habit,
     delete_habit,
     get_active_habits,
     get_completed_habits,
     get_habit,
     update_habit,
 )
-from app.schemas import HabitForm
 from app.services.authentication import (
     authorize,
 )
@@ -66,11 +66,9 @@ async def create(
 
     form_data = form.model_dump()
 
-    habit = await create_habit(session=session, user_id=idx, habit_data=form_data)
-    response = templates.TemplateResponse(
-        'habit_form.html', {'request': request, 'host': HOST, 'user_id': idx, 'habit': habit, 'success': True}
-    )
-    return response
+    await create_habit(session=session, user_id=idx, habit_data=form_data)
+    habits = await get_active_habits(session=session, user_id=idx)
+    return templates.TemplateResponse('main.html', {'request': request, 'host': HOST, 'user_id': idx, 'habits': habits})
 
 
 @router.get('/habit/{habit_id}')

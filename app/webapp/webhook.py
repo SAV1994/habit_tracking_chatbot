@@ -14,8 +14,11 @@ async def webhook(request: Request, session: AsyncSession = Depends(get_session)
     data = await request.json()
     user = await authenticate(session=session, data=data)
 
-    extra_data = {'user': user}
-    data['message']['extra_data'] = extra_data
+    extra_data = {'user': user, 'session': session}
+    if message := data.get('message'):
+        message['extra_data'] = extra_data
+    elif callback_query := data.get('callback_query'):
+        callback_query['extra_data'] = extra_data
     update = types.Update.de_json(data)
 
     await bot.process_new_updates([update])
