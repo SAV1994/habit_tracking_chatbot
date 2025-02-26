@@ -9,8 +9,12 @@ from app.services.notification import update_job_datetime
 
 
 async def summarize_daily_results() -> None:
+    """
+    Перенос невыполненных дневных целей
+    """
+
     async with async_session() as session:
-        aware_date = aware_now().date()
+        aware_date = aware_now().date() - timedelta(days=1)
 
         stmt = select(Habit).where(Habit.alert_date == aware_date)
         res = await session.execute(stmt)

@@ -1,5 +1,5 @@
 import datetime
-from typing import Self
+from typing import Self, Union
 
 from fastapi import Form
 from pydantic import BaseModel, Field, model_validator
@@ -30,7 +30,7 @@ class LoginForm(BaseModel):
 
 class HabitForm(BaseModel):
     title: str
-    description: str = None
+    description: Union[str, None] = None
     target: int
     alert_time: datetime.time
 

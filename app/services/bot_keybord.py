@@ -7,6 +7,10 @@ from app.settings import HOST, REFRESH_TOKEN_NAME
 
 
 def get_markup(user: User) -> types.ReplyKeyboardMarkup:
+    """
+    Получение кнопки со ссылкой на главную страницу webapp в зависимости от состояния пользователя
+    """
+
     if not user.password:
         btn = types.KeyboardButton(text='Мои цели', web_app=WebAppInfo(url=HOST + f'webapp/{user.id}/register'))
     elif not check_token(user=user, token=user.refresh_token, refresh=True):

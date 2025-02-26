@@ -12,7 +12,11 @@ from app.settings import APSCHEDULER_CONFIG, TZ
 scheduler = AsyncIOScheduler(gconfig=APSCHEDULER_CONFIG)
 
 
-async def alert(chat_id, habit_title, habit_id):
+async def alert(chat_id, habit_title, habit_id) -> None:
+    """
+    Оповещение пользователя о его дневной цели
+    """
+
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=habit_title, callback_data=f'habit#{habit_id}'))
     from app.bot import bot
@@ -26,10 +30,18 @@ async def alert(chat_id, habit_title, habit_id):
 
 
 def get_job_id(user_id: int, habit_id: int):
+    """
+    Формирование идентификатора для задачи оповещения пользователя
+    """
+
     return f'{user_id}#{habit_id}'
 
 
 def get_job_trigger_by_habit(habit: Habit) -> DateTrigger:
+    """
+    Формирование триггера для задачи оповещения пользователя
+    """
+
     return DateTrigger(
         run_date=datetime.datetime(
             year=habit.alert_date.year,
@@ -43,6 +55,10 @@ def get_job_trigger_by_habit(habit: Habit) -> DateTrigger:
 
 
 def add_job_by_datetime(habit: Habit) -> None:
+    """
+    Добавление задачи планировщику по дневной цели пользователя
+    """
+
     scheduler.add_job(
         func=alert,
         trigger=get_job_trigger_by_habit(habit=habit),
@@ -52,6 +68,10 @@ def add_job_by_datetime(habit: Habit) -> None:
 
 
 def update_job_datetime(habit: Habit) -> None:
+    """
+    Обновление задачи планировщика по дневной цели пользователя
+    """
+
     try:
         scheduler.reschedule_job(
             job_id=get_job_id(user_id=habit.user_id, habit_id=habit.id),
@@ -62,6 +82,10 @@ def update_job_datetime(habit: Habit) -> None:
 
 
 def delete_job(habit: Habit) -> None:
+    """
+    Удаление задачи планировщика по дневной цели пользователя
+    """
+
     try:
         scheduler.remove_job(job_id=get_job_id(user_id=habit.user_id, habit_id=habit.id))
     except JobLookupError:

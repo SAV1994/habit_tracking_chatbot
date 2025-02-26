@@ -1,7 +1,4 @@
-from typing import Union
-
-from sqlalchemy import Integer, String, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base

@@ -7,11 +7,19 @@ from app.models import User
 
 
 async def get_user(session: AsyncSession, user_id: Union[int, str]) -> Union[User, None]:
+    """
+    Получение пользователя по его идентификатору
+    """
+
     res = await session.execute(select(User).where(User.id == user_id))
     return res.unique().scalar_one_or_none()
 
 
 async def get_or_create_user(session: AsyncSession, user_id: int, user_data: dict) -> User:
+    """
+    Получение или создание нового пользователя по его идентификатору (Telegram ID)
+    """
+
     user = await get_user(session=session, user_id=user_id)
     if not user:
         user = User(

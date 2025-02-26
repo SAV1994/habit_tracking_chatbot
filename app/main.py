@@ -6,7 +6,6 @@ from pydantic_core import ValidationError
 from starlette import status
 from starlette.responses import JSONResponse
 
-from app.database import Base, engine
 from app.services import scheduler, summarize_daily_results
 from app.settings import (
     HOST,
@@ -16,26 +15,28 @@ from app.webapp import authentication_router, habits_router, webhook_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # before the application starts taking requests
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    scheduler.start()
-    scheduler.add_job(summarize_daily_results, trigger=CronTrigger(hour=15, minute=55))
-
     from app.bot import bot
 
+    # Запуск планировщика задач
+    scheduler.start()
+    # Запуск периодической задачи по подведению итогов за прошедший день
+    scheduler.add_job(summarize_daily_results, trigger=CronTrigger(hour=00, minute=5))
+    # Передача URL для webhook бота
     await bot.set_webhook(url=f'{HOST}/webhook')
 
     yield
 
     #  after the application finishes handling requests, right before the shutdown
-    scheduler.shutdown()
 
+    # Остановка планировщика задач
+    scheduler.shutdown()
+    # Отключаем webhook бота
     await bot.remove_webhook()
 
 
-app = FastAPI(lifespan=lifespan)
+# Отключаем документирование, т.к. API не для внешнего пользования
+app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+
 
 router = APIRouter()
 

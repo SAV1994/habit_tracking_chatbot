@@ -17,24 +17,35 @@ from app.settings import (
 )
 
 
-async def authenticate(session: AsyncSession, data: dict) -> User:
+async def authenticate(session: AsyncSession, data: dict) -> Union[User, None]:
+    """
+    Аутентификация пользователя, по данным полученным от Телеграм
+    """
+
     if (msg_data := data.get('message')) or (msg_data := data.get('callback_query')):
         user_data = msg_data.get('from', {})
         if user_id := user_data.get('id'):
-            user = await get_or_create_user(session=session, user_id=user_id, user_data=user_data)
-            return user
+            return await get_or_create_user(session=session, user_id=user_id, user_data=user_data)
 
 
 async def authorize(
     session: AsyncSession, user_id: int, token: Union[str, None], use_refresh_token: bool = False
 ) -> Union[User, None]:
+    """
+    Авторизация пользователя для работы с webapp
+    """
+
     user = await get_user(session=session, user_id=user_id)
     if user and token:
         if check_token(user=user, token=token, refresh=use_refresh_token):
             return user
 
 
-async def generate_user_tokens(session: AsyncSession, user: User):
+async def generate_user_tokens(session: AsyncSession, user: User) -> None:
+    """
+    Генерация токенов пользователя для доступа к webapp
+    """
+
     expire_access_token = (aware_now() + EXPIRE_ACCESS_TOKEN).strftime(format=DATETIME_FORMAT)
     expire_refresh_token = (aware_now() + EXPIRE_REFRESH_TOKEN).strftime(format=DATETIME_FORMAT)
 
@@ -54,6 +65,10 @@ async def generate_user_tokens(session: AsyncSession, user: User):
 
 
 async def set_user_password(session: AsyncSession, user: User, password: str) -> User:
+    """
+    Установка пароля пользователем
+    """
+
     password_hash = pbkdf2_sha256.hash(password)
     user.password = password_hash
 
@@ -63,10 +78,21 @@ async def set_user_password(session: AsyncSession, user: User, password: str) ->
 
 
 def check_password(user: User, password: str) -> bool:
-    return user and user.password and pbkdf2_sha256.verify(password, user.password)
+    """
+    Проверка пароля пользователя
+    """
+
+    return bool(user and user.password and pbkdf2_sha256.verify(password, user.password))
 
 
 def check_token(user: User, token: str, refresh: bool = False) -> bool:
+    """
+    Проверка токена пользователя
+
+    refresh=true - проверка refresh-токена
+    refresh=false - проверка access-токена
+    """
+
     if refresh:
         secret_token = SECRET_PYJWT_REFRESH_KEY
         token_from_db = user.refresh_token

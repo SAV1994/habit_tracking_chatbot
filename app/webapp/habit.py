@@ -27,19 +27,31 @@ router = APIRouter(prefix='/webapp/{idx}', tags=['habit'])
 
 @router.get('/home')
 async def get_homepage(request: Request, idx: int = Path(...), session: AsyncSession = Depends(get_session)):
+    """
+    Главная страница со списком активных целей
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)
+
     habits = await get_active_habits(session=session, user_id=idx)
+
     return templates.TemplateResponse('main.html', {'request': request, 'host': HOST, 'user_id': idx, 'habits': habits})
 
 
 @router.get('/completed')
 async def get_completed(request: Request, idx: int = Path(...), session: AsyncSession = Depends(get_session)):
+    """
+    Страница со списком выполненных целей
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)
+
     habits = await get_completed_habits(session=session, user_id=idx)
+
     return templates.TemplateResponse(
         'main.html', {'request': request, 'host': HOST, 'user_id': idx, 'habits': habits, 'completed': True}
     )
@@ -47,9 +59,14 @@ async def get_completed(request: Request, idx: int = Path(...), session: AsyncSe
 
 @router.get('/habit')
 async def get_habit_create_form(request: Request, idx: int = Path(...), session: AsyncSession = Depends(get_session)):
+    """
+    Получение формы добавления новой цели
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)
+
     return templates.TemplateResponse('habit_form.html', {'request': request, 'host': HOST, 'user_id': idx})
 
 
@@ -60,14 +77,19 @@ async def create(
     idx: int = Path(...),
     session: AsyncSession = Depends(get_session),
 ):
+    """
+    Обработка формы добавления новой цели
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)
 
     form_data = form.model_dump()
-
     await create_habit(session=session, user_id=idx, habit_data=form_data)
+
     habits = await get_active_habits(session=session, user_id=idx)
+
     return templates.TemplateResponse('main.html', {'request': request, 'host': HOST, 'user_id': idx, 'habits': habits})
 
 
@@ -75,12 +97,17 @@ async def create(
 async def get_habit_update_form(
     request: Request, idx: int = Path(...), habit_id: int = Path(...), session: AsyncSession = Depends(get_session)
 ):
+    """
+    Получение формы обновления цели
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)
     habit = await get_habit(session=session, user_id=idx, habit_id=habit_id)
     if not habit:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
+
     return templates.TemplateResponse(
         'habit_form.html', {'request': request, 'host': HOST, 'user_id': idx, 'habit': habit}
     )
@@ -94,19 +121,23 @@ async def update(
     habit_id: int = Path(...),
     session: AsyncSession = Depends(get_session),
 ):
+    """
+    Обработка формы обновления цели
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)
     habit = await get_habit(session=session, user_id=idx, habit_id=habit_id, active=True)
     if not habit:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
+
     form_data = form.model_dump()
     habit = await update_habit(session=session, habit=habit, data=form_data)
 
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         'habit_form.html', {'request': request, 'host': HOST, 'user_id': idx, 'habit': habit, 'success': True}
     )
-    return response
 
 
 @router.delete('/habit/{habit_id}')
@@ -116,6 +147,10 @@ async def delete(
     habit_id: int = Path(...),
     session: AsyncSession = Depends(get_session),
 ):
+    """
+    Удаление цели
+    """
+
     user = await authorize(session=session, user_id=idx, token=request.cookies.get(ACCESS_TOKEN_NAME))
     if not user:
         return Response(status_code=status.HTTP_403_FORBIDDEN)

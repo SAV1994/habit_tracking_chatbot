@@ -9,6 +9,10 @@ bot = AsyncTeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 async def start(message):
+    """
+    Инициализация бота
+    """
+
     extra_data = message.json['extra_data']
     user = extra_data['user']
 
@@ -27,6 +31,10 @@ async def start(message):
 
 @bot.message_handler(commands=['webapp'])
 async def webapp(message):
+    """
+    Получение кнопки для доступа к webapp
+    """
+
     extra_data = message.json['extra_data']
     user = extra_data['user']
 
@@ -39,6 +47,10 @@ async def webapp(message):
 
 @bot.message_handler(commands=['archive'])
 async def archive(message):
+    """
+    Список выработанных привычек
+    """
+
     extra_data = message.json['extra_data']
     user = extra_data['user']
     session = extra_data['session']
@@ -57,6 +69,10 @@ async def archive(message):
 
 @bot.message_handler(commands=['mark'])
 async def mark(message):
+    """
+    Список активных целей на день
+    """
+
     extra_data = message.json['extra_data']
     user = extra_data['user']
     session = extra_data['session']
@@ -82,6 +98,10 @@ async def mark(message):
 
 @bot.callback_query_handler(func=lambda callback: callback.data.startswith('habit#'))
 async def mark_habit_handler(callback):
+    """
+    Отметка о выполнении цели
+    """
+
     extra_data = callback.json['extra_data']
     user = extra_data['user']
     session = extra_data['session']
