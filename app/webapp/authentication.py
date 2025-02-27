@@ -28,7 +28,7 @@ router = APIRouter(prefix='/webapp/{idx}', tags=['authentication'])
 @router.get('/token')
 async def set_new_tokens(
     request: Request, idx: int = Path(...), session: AsyncSession = Depends(get_session)
-) -> Union[templates.TemplateResponse, Response]:
+):
     """
     Инициализация новой сессии пользователя с webapp посредством access-токена
     """

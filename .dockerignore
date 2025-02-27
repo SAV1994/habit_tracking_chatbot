@@ -1,0 +1,10 @@
+.git
+README.md
+.gitignore
+setup.cfg
+
+# Database
+db
+
+# Environments
+.env

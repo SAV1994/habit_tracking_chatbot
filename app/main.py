@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     await bot.remove_webhook()
 
 
-# Отключаем документирование, т.к. API не для внешнего пользования
+# Отключаем документирование, так как API не для внешнего пользования
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
 

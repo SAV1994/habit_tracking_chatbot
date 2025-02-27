@@ -22,7 +22,7 @@ DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 TZ = 'Europe/Moscow'
 
 # База данных
-DATABASE_DETAILS = 'admin:admin@0.0.0.0:5450'
+DATABASE_DETAILS = 'admin:admin@postgresql_container:5432'
 DATABASE_URL_ASYNC = 'postgresql+asyncpg://' + DATABASE_DETAILS
 DATABASE_URL_SYNC = 'postgresql+psycopg2://' + DATABASE_DETAILS
 

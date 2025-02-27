@@ -146,7 +146,7 @@ async def delete(
     idx: int = Path(...),
     habit_id: int = Path(...),
     session: AsyncSession = Depends(get_session),
-):
+) -> Response:
     """
     Удаление цели
     """

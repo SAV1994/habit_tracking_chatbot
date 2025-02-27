@@ -1,4 +1,4 @@
-version: '3.2'
+version: '3.8'
 services:
   postgres:
     container_name: 'postgresql_container'
@@ -7,6 +7,26 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
     ports:
-      - '5450:5432'
+      - '5432:5432'
+    networks:
+      - postgres
     volumes:
       - ./db/:/var/lib/postgresql/data
+
+  app:
+    platform: linux/amd64
+    container_name: 'app'
+    env_file: '.env'
+    build:
+      context: .
+    depends_on:
+      - postgres
+    networks:
+      - postgres
+    ports:
+      - '8000:8000'
+    stop_signal: SIGKILL
+
+networks:
+  postgres:
+    driver: bridge

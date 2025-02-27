@@ -28,7 +28,8 @@ async def summarize_daily_results() -> None:
             await bot.send_message(
                 chat_id=habit.user_id,
                 text=f'❌ Не выполнена цель по привычке "{habit.title}". Счётчик сброшен. '
-                f'В Следующий раз у Вас обязательно получится. ✊',
+                'В Следующий раз у Вас обязательно получится. ✊',
+                disable_notification=True,
             )
 
             update_job_datetime(habit=habit)
