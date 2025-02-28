@@ -1,5 +1,3 @@
-from typing import Union
-
 from fastapi import APIRouter, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -26,9 +24,7 @@ router = APIRouter(prefix='/webapp/{idx}', tags=['authentication'])
 
 
 @router.get('/token')
-async def set_new_tokens(
-    request: Request, idx: int = Path(...), session: AsyncSession = Depends(get_session)
-):
+async def set_new_tokens(request: Request, idx: int = Path(...), session: AsyncSession = Depends(get_session)):
     """
     Инициализация новой сессии пользователя с webapp посредством access-токена
     """
